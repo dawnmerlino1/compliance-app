@@ -1,5 +1,5 @@
 streamlit
 pandas
-PyPDF2
-python-docx
 sentence-transformers
+python-docx
+PyMuPDF
