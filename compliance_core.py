@@ -1,17 +1,19 @@
 import pandas as pd
 from sentence_transformers import SentenceTransformer, util
 
-# Load NLP model
+# -------------------------------
+# LOAD MODEL
+# -------------------------------
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 
 # -------------------------------
-# ROBUST TEXT EXTRACTION
+# TEXT EXTRACTION (ROBUST)
 # -------------------------------
 def extract_text(file_path):
     text = ""
 
-    # ✅ Use PyMuPDF for PDF (very reliable)
+    # ✅ PDF using PyMuPDF
     if file_path.endswith(".pdf"):
         try:
             import fitz  # PyMuPDF
@@ -25,13 +27,12 @@ def extract_text(file_path):
         except Exception:
             text = ""
 
-    # ✅ Word documents
+    # ✅ DOCX support
     elif file_path.endswith(".docx"):
         try:
             import docx
             doc = docx.Document(file_path)
             text = "\n".join([p.text for p in doc.paragraphs])
-
         except Exception:
             text = ""
 
@@ -39,7 +40,7 @@ def extract_text(file_path):
 
 
 # -------------------------------
-# NLP MATCHING
+# NLP EVALUATION
 # -------------------------------
 def evaluate(item, text):
     sentences = text.split(".")
@@ -60,6 +61,7 @@ def evaluate(item, text):
             best_score = score
             best_sentence = s
 
+    # Classification thresholds
     if best_score > 0.55:
         status = "✅ Met"
     elif best_score > 0.40:
@@ -71,14 +73,14 @@ def evaluate(item, text):
 
 
 # -------------------------------
-# REPORT BUILDER
+# BUILD REPORT
 # -------------------------------
 def build_report(course_file, checklist_file):
 
     course_text = extract_text(course_file)
     checklist_text = extract_text(checklist_file)
 
-    # ✅ Prevent crashes + give clear errors
+    # ✅ Safety checks
     if not checklist_text:
         raise ValueError("Checklist file contains no readable text")
 
