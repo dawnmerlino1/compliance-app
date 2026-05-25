@@ -4,14 +4,18 @@ from compliance_core import build_report
 import tempfile
 import traceback
 
-# Page title
-st.title("✅ Compliance App Running")
-st.write("If you see this page, the app is working correctly.")
+# -------------------------------
+# UI HEADER
+# -------------------------------
+st.title("📊 Course Calendar Compliance Analyzer")
 
-# Confirm backend loaded
-st.success("✅ Backend loaded successfully")
+st.write("Upload a checklist and course calendar(s) to analyze compliance.")
 
-# Upload inputs
+st.success("✅ App loaded successfully")
+
+# -------------------------------
+# FILE UPLOAD
+# -------------------------------
 checklist_file = st.file_uploader("Upload Checklist", type=["pdf", "docx"])
 
 course_files = st.file_uploader(
@@ -20,7 +24,9 @@ course_files = st.file_uploader(
     accept_multiple_files=True
 )
 
-# Run analysis button
+# -------------------------------
+# RUN ANALYSIS
+# -------------------------------
 if st.button("Run Analysis"):
 
     if not checklist_file or not course_files:
@@ -32,12 +38,12 @@ if st.button("Run Analysis"):
         results = []
 
         try:
-            # Save checklist temporarily
+            # Save checklist to temp file
             with tempfile.NamedTemporaryFile(delete=False) as tmp_checklist:
                 tmp_checklist.write(checklist_file.read())
                 checklist_path = tmp_checklist.name
 
-            # Process each file
+            # Process each course file
             for file in course_files:
                 with tempfile.NamedTemporaryFile(delete=False) as tmp_course:
                     tmp_course.write(file.read())
@@ -55,11 +61,14 @@ if st.button("Run Analysis"):
 
             st.dataframe(combined)
 
+            # Compliance score
             compliance = (combined["Status"] == "✅ Met").mean() * 100
             st.metric("Compliance Score", f"{compliance:.1f}%")
 
         except Exception as e:
             st.error("❌ Error during analysis")
+
             st.text(str(e))
             st.text("🔍 Full error details:")
             st.text(traceback.format_exc())
+``
