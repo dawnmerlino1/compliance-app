@@ -1,10 +1,21 @@
 import streamlit as st
-import pandas as pd
-from compliance_core import build_report
-import tempfile
 
-st.write("✅ App is running correctly")
-st.title("Course Calendar Compliance Analyzer")
+st.title("✅ Compliance App Running")
+
+st.write("If you see this page, the app is working correctly.")
+
+# Try importing backend safely
+try:
+    import pandas as pd
+    from compliance_core import build_report
+    import tempfile
+
+    st.success("✅ Backend loaded successfully")
+
+except Exception as e:
+    st.error("❌ Backend failed to load")
+    st.text(str(e))
+
 
 checklist_file = st.file_uploader("Upload Checklist", type=["pdf", "docx"])
 course_files = st.file_uploader(
@@ -19,30 +30,33 @@ if st.button("Run Analysis"):
         st.error("Please upload both checklist and course file(s)")
 
     else:
-        # Save checklist to temporary file
-        with tempfile.NamedTemporaryFile(delete=False) as tmp_checklist:
-            tmp_checklist.write(checklist_file.read())
-            checklist_path = tmp_checklist.name
+        st.write("🔄 Running analysis...")
 
         results = []
 
-        for file in course_files:
-            # Save each course file to temporary file
-            with tempfile.NamedTemporaryFile(delete=False) as tmp_course:
-                tmp_course.write(file.read())
-                course_path = tmp_course.name
+        try:
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_checklist:
+                tmp_checklist.write(checklist_file.read())
+                checklist_path = tmp_checklist.name
 
-            # Run analysis
-            df = build_report(course_path, checklist_path)
-            df["School"] = file.name
+            for file in course_files:
+                with tempfile.NamedTemporaryFile(delete=False) as tmp_course:
+                    tmp_course.write(file.read())
+                    course_path = tmp_course.name
 
-            results.append(df)
+                df = build_report(course_path, checklist_path)
+                df["School"] = file.name
+                results.append(df)
 
-        combined = pd.concat(results)
+            combined = pd.concat(results)
 
-        st.success("✅ Analysis complete!")
+            st.success("✅ Analysis complete!")
+            st.dataframe(combined)
 
-        st.dataframe(combined)
+            compliance = (combined["Status"] == "✅ Met").mean() * 100
+            st.metric("Compliance Score", f"{compliance:.1f}%")
 
-        compliance = (combined["Status"] == "✅ Met").mean() * 100
-        st.metric("Compliance Score", f"{compliance:.1f}%")
+        except Exception as e:
+            st.error("❌ Error during analysis")
+            st.text(str(e))
+``
