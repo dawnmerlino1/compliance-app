@@ -8,7 +8,6 @@ import traceback
 # UI HEADER
 # -------------------------------
 st.title("📊 Course Calendar Compliance Analyzer")
-
 st.write("Upload a checklist and course calendar(s) to analyze compliance.")
 
 st.success("✅ App loaded successfully")
@@ -16,7 +15,10 @@ st.success("✅ App loaded successfully")
 # -------------------------------
 # FILE UPLOAD
 # -------------------------------
-checklist_file = st.file_uploader("Upload Checklist", type=["pdf", "docx"])
+checklist_file = st.file_uploader(
+    "Upload Checklist", 
+    type=["pdf", "docx"]
+)
 
 course_files = st.file_uploader(
     "Upload Course Calendars",
@@ -47,27 +49,3 @@ if st.button("Run Analysis"):
             for file in course_files:
                 with tempfile.NamedTemporaryFile(delete=False) as tmp_course:
                     tmp_course.write(file.read())
-                    course_path = tmp_course.name
-
-                df = build_report(course_path, checklist_path)
-                df["School"] = file.name
-
-                results.append(df)
-
-            # Combine results
-            combined = pd.concat(results)
-
-            st.success("✅ Analysis complete!")
-
-            st.dataframe(combined)
-
-            # Compliance score
-            compliance = (combined["Status"] == "✅ Met").mean() * 100
-            st.metric("Compliance Score", f"{compliance:.1f}%")
-
-        except Exception as e:
-            st.error("❌ Error during analysis")
-
-            st.text(str(e))
-            st.text("🔍 Full error details:")
-            st.text(traceback.format_exc())
