@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 from compliance_core import build_report
 st.write("✅ App is running correctly")
-``
 st.title("Course Calendar Compliance Analyzer")
 
 checklist_file = st.file_uploader("Upload Checklist", type=["pdf", "docx"])
