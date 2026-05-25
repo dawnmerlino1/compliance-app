@@ -71,4 +71,3 @@ if st.button("Run Analysis"):
             st.text(str(e))
             st.text("🔍 Full error details:")
             st.text(traceback.format_exc())
-``
