@@ -1,33 +1,37 @@
-import PyPDF2
-import docx
 import pandas as pd
 from sentence_transformers import SentenceTransformer, util
 
-# Load model once
+# Load NLP model
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 
 # -------------------------------
-# TEXT EXTRACTION (SAFE VERSION)
+# ROBUST TEXT EXTRACTION
 # -------------------------------
 def extract_text(file_path):
     text = ""
 
+    # ✅ Use PyMuPDF for PDF (very reliable)
     if file_path.endswith(".pdf"):
         try:
-            with open(file_path, "rb") as f:
-                reader = PyPDF2.PdfReader(f)
-                for page in reader.pages:
-                    page_text = page.extract_text()
-                    if page_text:
-                        text += page_text
+            import fitz  # PyMuPDF
+            doc = fitz.open(file_path)
+
+            for page in doc:
+                page_text = page.get_text()
+                if page_text:
+                    text += page_text
+
         except Exception:
             text = ""
 
+    # ✅ Word documents
     elif file_path.endswith(".docx"):
         try:
+            import docx
             doc = docx.Document(file_path)
             text = "\n".join([p.text for p in doc.paragraphs])
+
         except Exception:
             text = ""
 
@@ -35,10 +39,11 @@ def extract_text(file_path):
 
 
 # -------------------------------
-# MATCHING FUNCTION
+# NLP MATCHING
 # -------------------------------
 def evaluate(item, text):
     sentences = text.split(".")
+
     item_vec = model.encode(item, convert_to_tensor=True)
 
     best_score = 0
@@ -66,13 +71,14 @@ def evaluate(item, text):
 
 
 # -------------------------------
-# BUILD REPORT (SAFE VERSION)
+# REPORT BUILDER
 # -------------------------------
 def build_report(course_file, checklist_file):
+
     course_text = extract_text(course_file)
     checklist_text = extract_text(checklist_file)
 
-    # ✅ Prevent crash here
+    # ✅ Prevent crashes + give clear errors
     if not checklist_text:
         raise ValueError("Checklist file contains no readable text")
 
@@ -81,7 +87,7 @@ def build_report(course_file, checklist_file):
 
     items = checklist_text.split("\n")
 
-    data = []
+    results = []
 
     for item in items:
         if len(item.strip()) < 20:
@@ -95,7 +101,7 @@ def build_report(course_file, checklist_file):
             else "Missing or needs clarification."
         )
 
-        data.append({
+        results.append({
             "Checklist Item": item,
             "Status": status,
             "Confidence": round(score, 2),
@@ -103,4 +109,4 @@ def build_report(course_file, checklist_file):
             "Comment": comment
         })
 
-    return pd.DataFrame(data)
+    return pd.DataFrame(results)
