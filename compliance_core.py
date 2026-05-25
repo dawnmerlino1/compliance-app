@@ -77,3 +77,30 @@ def build_report(course_file, checklist_file):
         raise ValueError("Checklist file contains no readable text")
 
     if not course_text:
+        raise ValueError("Course file contains no readable text")
+
+    items = checklist_text.split("\n")
+
+    data = []
+
+    for item in items:
+        if len(item.strip()) < 20:
+            continue
+
+        status, evidence, score = evaluate(item, course_text)
+
+        comment = (
+            "Fully addressed in document."
+            if status == "✅ Met"
+            else "Missing or needs clarification."
+        )
+
+        data.append({
+            "Checklist Item": item,
+            "Status": status,
+            "Confidence": round(score, 2),
+            "Evidence": evidence,
+            "Comment": comment
+        })
+
+    return pd.DataFrame(data)
