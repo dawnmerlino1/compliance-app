@@ -1,6 +1,4 @@
 streamlit
 pandas
-sentence-transformers
 python-docx
 PyMuPDF
-PyPDF2
