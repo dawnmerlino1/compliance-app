@@ -14,7 +14,7 @@ def extract_text(file_path):
                 page_text = page.get_text()
                 if page_text:
                     text += page_text
-        except Exception:
+        except:
             pass
 
     elif file_path.endswith(".docx"):
@@ -22,27 +22,24 @@ def extract_text(file_path):
             import docx
             doc = docx.Document(file_path)
             text = "\n".join([p.text for p in doc.paragraphs])
-        except Exception:
+        except:
             pass
 
     return text.lower()
 
 
 # -------------------------------
-# SIMPLE MATCHING (VERY RELIABLE)
+# SIMPLE MATCHING (SAFE)
 # -------------------------------
 def evaluate(item, text):
-
-    item_clean = item.lower()
-
-    if item_clean in text:
-        return "✅ Met", item, 0.9
+    if item.lower() in text:
+        return "✅ Met", item, 1.0
     else:
         return "❌ Not Found", "", 0.0
 
 
 # -------------------------------
-# BUILD REPORT
+# REPORT BUILDER
 # -------------------------------
 def build_report(course_file, checklist_file):
 
@@ -54,7 +51,7 @@ def build_report(course_file, checklist_file):
     results = []
 
     for item in items:
-        if len(item.strip()) < 15:
+        if len(item.strip()) < 5:
             continue
 
         status, evidence, score = evaluate(item, course_text)
@@ -62,16 +59,25 @@ def build_report(course_file, checklist_file):
         comment = (
             "Clearly present in document."
             if status == "✅ Met"
-            else "Not found or needs inclusion."
+            else "Missing or unclear."
         )
 
         results.append({
             "Checklist Item": item,
             "Status": status,
             "Confidence": score,
-            "Evidence": evidence[:200],
+            "Evidence": evidence,
             "Comment": comment
         })
 
+    # ✅ GUARANTEE output
+    if not results:
+        results.append({
+            "Checklist Item": "No checklist items detected",
+            "Status": "❌",
+            "Confidence": 0,
+            "Evidence": "",
+            "Comment": "Checklist parsing failed"
+        })
+
     return pd.DataFrame(results)
-``
