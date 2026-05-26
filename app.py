@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-st.write("✅ Import test bypass")
+from compliance_core import build_report
 import tempfile
 
 st.title("📊 Compliance Analyzer")
