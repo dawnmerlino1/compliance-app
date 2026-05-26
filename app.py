@@ -9,7 +9,7 @@ st.title("📊 Compliance Analyzer")
 checklist_file = st.file_uploader("Upload Checklist", type=["pdf", "docx"])
 
 course_files = st.file_uploader(
-    "Upload Course Calendars",
+    "Upload Course Files",
     type=["pdf", "docx"],
     accept_multiple_files=True
 )
@@ -18,19 +18,18 @@ course_files = st.file_uploader(
 if st.button("Run Analysis"):
 
     if not checklist_file or not course_files:
-        st.error("Please upload checklist and course files")
+        st.error("Please upload both checklist and course files")
 
     else:
         st.write("🔄 Running analysis...")
-
         results = []
 
-        # Save checklist
+        # Save checklist temporarily
         with tempfile.NamedTemporaryFile(delete=False) as tmp_checklist:
             tmp_checklist.write(checklist_file.read())
             checklist_path = tmp_checklist.name
 
-        # Process files
+        # Process each course file
         for file in course_files:
 
             st.write(f"Processing: {file.name}")
@@ -41,7 +40,6 @@ if st.button("Run Analysis"):
 
             df = build_report(course_path, checklist_path)
             df["School"] = file.name
-
             results.append(df)
 
         combined = pd.concat(results)
